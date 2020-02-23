@@ -82,6 +82,7 @@ Postgres config generator: https://pgtune.leopard.in.ua/#/
 Deployment templates:
 
 A Template for PostgreSQL HA with ZooKeeper, etcd or Consul: https://github.com/zalando/patroni
+
 Postgres + Pacemaker + Corosync: https://github.com/clusterlabs/PAF
 
 # Development helpers
