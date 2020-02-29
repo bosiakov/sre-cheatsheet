@@ -2,7 +2,9 @@
 
 Collection of snippets and links for host management: app and db status check, db management and app debugging.
 
-## Check host state in 60s
+## Host
+
+### Check host state in 60s
 
 Memory:
 
@@ -33,7 +35,13 @@ sar -n DEV 1 # network IO
 sar -n TCP,ETCP 1 # TCP stats
 ```
 
-## Check postgres state in 60s:
+## DB
+
+Postgres Guide : http://postgresguide.com/
+
+### Check postgres state in 60s:
+
+Postgres Explain Beatify: https://explain.depesz.com/
 
 ```bash
 # dont forget to replace your version
@@ -62,9 +70,21 @@ WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%'
 ORDER BY query_start desc;
 ```
 
-Postgres Explain Beatify: https://explain.depesz.com/
+Check pgBouncer state:
 
-# Db Dump
+```sql
+psql -p 6432 pgbouncer # Only users listed in the configuration parameters admin_users or stats_users are allowed to log in
+SHOW STATS
+SHOW TOTALS # is there any anomalies across stats?
+```
+
+## DB dump / backup
+
+Official Postgres script for automated backups: http://wiki.postgresql.org/wiki/Automated_Backup_on_Linux
+
+Easier way: https://www.depesz.com/2013/09/11/how-to-make-backups-of-postgresql/
+
+Quick snippet for PG and MySQL backup:
 
 ```bash
 pg_dump -Fc --schema='public' --exclude-table='excl.table' -h <host> -U <user> -W -v <db> > db.dump.$(date +%F) # dump a database into a custom-format archive
@@ -75,7 +95,7 @@ mysqldump -u <user> -p <password> -h <host> --quick --single-transaction --datab
 mysql db1 < dump.sql
 ```
 
-## Postgres deployment and configuration:
+### Postgres deployment and configuration:
 
 Postgres config generator: https://pgtune.leopard.in.ua/#/
 
@@ -85,7 +105,9 @@ A Template for PostgreSQL HA with ZooKeeper, etcd or Consul: https://github.com/
 
 Postgres + Pacemaker + Corosync: https://github.com/clusterlabs/PAF
 
-# Development helpers
+## Development
+
+### Helpers
 
 Online generators:
 
@@ -95,15 +117,19 @@ JSON <-> Any language https://quicktype.io
 
 CURL -> Python/PHP/JSON/etc https://curl.trillworks.com
 
-# Simple perfomance test
+### Bash
 
-[wrk](https://github.com/wg/wrk):
+How to write good bash: https://blog.yossarian.net/2020/01/23/Anybody-can-write-good-bash-with-a-little-effort
+
+## Simple perfomance test
+
+Simple example with [wrk](https://github.com/wg/wrk):
 
 ```bash
 wrk -t12 -c400 -d30s http://127.0.0.1:8080/index.html
 ```
 
-[hey](https://github.com/rakyll/hey):
+More advanced example with [hey](https://github.com/rakyll/hey) (written in Go). POST Query with cookies:
 
 ```bash
 hey -c 200 -z 60s -m POST -T "application/json" -H "Cookie: cookie1=val1" -H "Content-Type: application/json"  -d '{"key1": "val1"}' http://localhost:8000/endpoint
