@@ -101,12 +101,24 @@ Easier way: https://www.depesz.com/2013/09/11/how-to-make-backups-of-postgresql/
 Quick snippet for PG and MySQL backup:
 
 ```bash
+# dump whole db
 pg_dump -Fc --schema='public' --exclude-table='excl.table' -h <host> -U <user> -W -v <db> > db.dump.$(date +%F) # dump a database into a custom-format archive
+
+# dump one table with plane sql
+pg_dump --host <host> --port 5432 --username <user> --format plain --verbose --file "/tmp/dump.table.sql" --table public.<table> <db_name>
+
 pg_restore -d newdb db.dump # reload an archive file into a (freshly created) database named newdb
 
 mysqldump -u <user> -p <password> -h <host> --quick --single-transaction --databases db1 --result-file=db-backup-$(date +%F).sql 
 # option --single-transaction sets the transaction isolation mode to REPEATABLE READ and sends a START TRANSACTION SQL statement to the server before dumping data 
 mysql db1 < dump.sql
+```
+
+### Check Redis state
+
+```bash
+redis-cli info # Complete info including network, CPU, memory, persistence and cluster settings
+redis-cli monitor # Warning: Because MONITOR streams back all commands, its use comes at a cost
 ```
 
 ### Postgres deployment and configuration:
@@ -149,4 +161,10 @@ More advanced example with [hey](https://github.com/rakyll/hey) (written in Go).
 
 ```bash
 hey -c 200 -z 60s -m POST -T "application/json" -H "Cookie: cookie1=val1" -H "Content-Type: application/json"  -d '{"key1": "val1"}' http://localhost:8000/endpoint
+```
+
+Redis bench:
+
+```
+redis-benchmark -c 10 -n 100000 -q
 ```
