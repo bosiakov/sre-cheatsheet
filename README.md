@@ -35,6 +35,15 @@ sar -n DEV 1 # network IO
 sar -n TCP,ETCP 1 # TCP stats
 ```
 
+Check DB connections:
+
+```bash
+lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
+# 3306 - default MYSQL port
+# 5432 - default PSQL port
+# 6432 - default pgBouncer port
+```
+
 ## DB
 
 Postgres Guide : http://postgresguide.com/
@@ -43,31 +52,36 @@ Postgres Guide : http://postgresguide.com/
 
 Postgres Explain Beatify: https://explain.depesz.com/
 
-```bash
-# dont forget to replace your version
-sudo du -csh -t 100M /var/lib/postgresql/10/main/* # check base and pg_xlog size
-```
+Check DB sizes:
 
 ```sql
--- all databases and their sizes
-select * from pg_user;
+\l+
 
--- all tables and their size, with/without indexes
-select datname, pg_size_pretty(pg_database_size(datname))
-from pg_database
-order by pg_database_size(datname) desc;
+-- size of one table 
+\c dbname
+SELECT pg_size_pretty( pg_total_relation_size('tablename'));
+```
 
+Check running queries:
+
+```sql
 -- show queries that runs more than 2 minutes
-SELECT now() - query_start as "runtime", usename, datname, waiting, state, query
+SELECT now() - query_start as "runtime", usename, datname, state, query
   FROM  pg_stat_activity
   WHERE now() - query_start > '2 minutes'::interval
  ORDER BY runtime DESC;
 
--- show running queries
+-- show all running queries
 SELECT pid, age(clock_timestamp(), query_start), usename, query 
 FROM pg_stat_activity 
 WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' 
 ORDER BY query_start desc;
+```
+
+Check the number of connections:
+
+```
+SELECT * FROM pg_stat_activity;
 ```
 
 Check pgBouncer state:
@@ -120,6 +134,8 @@ CURL -> Python/PHP/JSON/etc https://curl.trillworks.com
 ### Bash
 
 How to write good bash: https://blog.yossarian.net/2020/01/23/Anybody-can-write-good-bash-with-a-little-effort
+
+Explain bash string: https://explainshell.com/
 
 ## Simple perfomance test
 
