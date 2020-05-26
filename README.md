@@ -2,20 +2,19 @@
 
 Collection of snippets and links for host management: app and db status check, db management and app debugging.
 
-## Host
-
-### Check host state in 60s
+## Check host state in 60s
 
 Memory:
 
 ```bash
 free -m # memory usage
 ```
+
 CPU:
 
 ```bash
 uptime # check load avg
-vmstat 1 # system-wide utilization
+vmstat 1 # system-wide utilization. is this swapping?
 mpstat -P ALL 1 # CPU balance
 pidstat 1 # per-process CPU
 ```
@@ -24,7 +23,6 @@ Disk:
 
 ```bash
 iostat -xnz 1 # any disk IO? no? good
-vmstat 1 # is this swapping?
 df -h # are file systems nearly full?
 ```
 
@@ -44,13 +42,18 @@ lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
 # 6432 - default pgBouncer port
 ```
 
-## DB
+## Storage
+
+### Postgres
+
+#### Postgres Guides
 
 Postgres Guide : http://postgresguide.com/
 
-### Check postgres state in 60s:
-
 Postgres Explain Beatify: https://explain.depesz.com/
+
+
+#### Check postgres state in 60s:
 
 Check DB sizes:
 
@@ -92,13 +95,14 @@ SHOW STATS
 SHOW TOTALS # is there any anomalies across stats?
 ```
 
-## DB dump / backup
+
+#### Postgres Dump / Backup
 
 Official Postgres script for automated backups: http://wiki.postgresql.org/wiki/Automated_Backup_on_Linux
 
 Easier way: https://www.depesz.com/2013/09/11/how-to-make-backups-of-postgresql/
 
-Quick snippet for PG and MySQL backup:
+Quick snippet for PG backup:
 
 ```bash
 # dump whole db
@@ -108,20 +112,9 @@ pg_dump -Fc --schema='public' --exclude-table='excl.table' -h <host> -U <user> -
 pg_dump --host <host> --port 5432 --username <user> --format plain --verbose --file "/tmp/dump.table.sql" --table public.<table> <db_name>
 
 pg_restore -d newdb db.dump # reload an archive file into a (freshly created) database named newdb
-
-mysqldump -u <user> -p <password> -h <host> --quick --single-transaction --databases db1 --result-file=db-backup-$(date +%F).sql 
-# option --single-transaction sets the transaction isolation mode to REPEATABLE READ and sends a START TRANSACTION SQL statement to the server before dumping data 
-mysql db1 < dump.sql
 ```
 
-### Check Redis state
-
-```bash
-redis-cli info # Complete info including network, CPU, memory, persistence and cluster settings
-redis-cli monitor # Warning: Because MONITOR streams back all commands, its use comes at a cost
-```
-
-### Postgres deployment and configuration:
+#### Postgres deployment and configuration:
 
 Postgres config generator: https://pgtune.leopard.in.ua/#/
 
@@ -130,6 +123,51 @@ Deployment templates:
 A Template for PostgreSQL HA with ZooKeeper, etcd or Consul: https://github.com/zalando/patroni
 
 Postgres + Pacemaker + Corosync: https://github.com/clusterlabs/PAF
+
+### MySQL
+
+#### Check MySQL state in 60s
+
+This query will list the size of every table in every database, largest first:
+
+```
+SELECT 
+     table_schema as `Database`, 
+     table_name AS `Table`, 
+     round(((data_length + index_length) / 1024 / 1024), 2) `Size in MB` 
+FROM information_schema.TABLES 
+ORDER BY (data_length + index_length) DESC;
+```
+
+Server Status, connections and running queries:
+
+```
+show global status;
+
+show status where `variable_name` = 'Threads_connected'; -- The number of currently open connections.
+
+show processlist; -- running queries
+```
+
+#### MySQL dump / backup
+
+Quick snippet for MySQL backup:
+
+```
+mysqldump -u <user> -p <password> -h <host> --quick --single-transaction --databases db1 --result-file=db-backup-$(date +%F).sql 
+# option --single-transaction sets the transaction isolation mode to REPEATABLE READ and sends a START TRANSACTION SQL statement to the server before dumping data 
+mysql db1 < dump.sql
+```
+
+### Redis
+
+### Check Redis state
+
+```bash
+redis-cli info # Complete info including network, CPU, memory, persistence and cluster settings
+redis-cli monitor # Warning: Because MONITOR streams back all commands, its use comes at a cost
+```
+
 
 ## Development
 
@@ -146,6 +184,8 @@ CURL -> Python/PHP/JSON/etc https://curl.trillworks.com
 ### Bash
 
 How to write good bash: https://blog.yossarian.net/2020/01/23/Anybody-can-write-good-bash-with-a-little-effort
+
+Unofficial bash strict mode: http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
 Explain bash string: https://explainshell.com/
 
