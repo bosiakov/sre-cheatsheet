@@ -44,6 +44,8 @@ lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
 
 ## Storage
 
+Database actual isolation levels: https://github.com/ept/hermitage
+
 ### Postgres
 
 #### Postgres Guides
@@ -51,6 +53,8 @@ lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
 Postgres Guide : http://postgresguide.com/
 
 Postgres Explain Beatify: https://explain.depesz.com/
+
+Postgres config generator: https://pgtune.leopard.in.ua/#/
 
 
 #### Check postgres state in 60s:
@@ -114,15 +118,6 @@ pg_dump --host <host> --port 5432 --username <user> --format plain --verbose --f
 pg_restore -d newdb db.dump # reload an archive file into a (freshly created) database named newdb
 ```
 
-#### Postgres deployment and configuration:
-
-Postgres config generator: https://pgtune.leopard.in.ua/#/
-
-Deployment templates:
-
-A Template for PostgreSQL HA with ZooKeeper, etcd or Consul: https://github.com/zalando/patroni
-
-Postgres + Pacemaker + Corosync: https://github.com/clusterlabs/PAF
 
 ### MySQL
 
@@ -161,11 +156,18 @@ mysql db1 < dump.sql
 
 ### Redis
 
+CLI handbook: https://redis.io/commands
+
 ### Check Redis state
 
 ```bash
 redis-cli info # Complete info including network, CPU, memory, persistence and cluster settings
 redis-cli monitor # Warning: Because MONITOR streams back all commands, its use comes at a cost
+
+> redis-cli
+
+CLIENT LIST # returns information and statistics about the client connections
+DBSIZE # the number of keys in the currently-selected database
 ```
 
 
@@ -203,7 +205,7 @@ More advanced example with [hey](https://github.com/rakyll/hey) (written in Go).
 hey -c 200 -z 60s -m POST -T "application/json" -H "Cookie: cookie1=val1" -H "Content-Type: application/json"  -d '{"key1": "val1"}' http://localhost:8000/endpoint
 ```
 
-Redis bench:
+Redis benchmark (https://redis.io/topics/benchmarks):
 
 ```
 redis-benchmark -c 10 -n 100000 -q
