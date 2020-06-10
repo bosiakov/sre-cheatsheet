@@ -52,12 +52,17 @@ Database actual isolation levels: https://github.com/ept/hermitage
 
 Postgres Guide : http://postgresguide.com/
 
+Postgres Config generator: https://pgtune.leopard.in.ua/#/
+
+#### Explain visialize
+
 Postgres Explain Beatify: https://explain.depesz.com/
 
-Postgres config generator: https://pgtune.leopard.in.ua/#/
+Postgres Explain Visualizer: https://tatiyants.com/pev/#/plans/new
 
+#### Disk usage
 
-#### Check postgres state in 60s:
+Detailted PostGres Disk Usage: https://wiki.postgresql.org/wiki/Disk_Usage
 
 Check DB sizes:
 
@@ -69,7 +74,7 @@ Check DB sizes:
 SELECT pg_size_pretty( pg_total_relation_size('tablename'));
 ```
 
-Check running queries:
+#### Running queries
 
 ```sql
 -- show queries that runs more than 2 minutes
@@ -98,7 +103,6 @@ psql -p 6432 pgbouncer # Only users listed in the configuration parameters admin
 SHOW STATS
 SHOW TOTALS # is there any anomalies across stats?
 ```
-
 
 #### Postgres Dump / Backup
 
@@ -164,12 +168,9 @@ CLI handbook: https://redis.io/commands
 redis-cli info # Complete info including network, CPU, memory, persistence and cluster settings
 redis-cli monitor # Warning: Because MONITOR streams back all commands, its use comes at a cost
 
-> redis-cli
-
-CLIENT LIST # returns information and statistics about the client connections
-DBSIZE # the number of keys in the currently-selected database
+redis-cli client list # returns information and statistics about the client connections
+redis-cli dbsize # the number of keys in the currently-selected database. New connections always use the database 0.
 ```
-
 
 ## Development
 
@@ -185,11 +186,14 @@ CURL -> Python/PHP/JSON/etc https://curl.trillworks.com
 
 ### Bash
 
+Shell script static analysis tool: https://www.shellcheck.net/
+
+Explain bash string: https://explainshell.com/
+
 How to write good bash: https://blog.yossarian.net/2020/01/23/Anybody-can-write-good-bash-with-a-little-effort
 
 Unofficial bash strict mode: http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
-Explain bash string: https://explainshell.com/
 
 ## Simple perfomance test
 
