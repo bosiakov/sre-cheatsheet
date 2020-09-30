@@ -1,46 +1,82 @@
-# Reliability Engineer Cheatsheet
+# Operations Engineer Cheatsheet
 
-Collection of snippets and links for host management: app and db status check, db management and app debugging.
+Collection of cheatsheets for performing a complete check of system health, database administration, performance benchmarks, and documentation links.
 
-## Check host state in 60s
+Target audience: DevOps, SRE, System Administrators, and everyone who is on duty.
 
-Memory:
+## Linux Performance Checklist
+
+USE Method: http://www.brendangregg.com/USEmethod/use-linux.html
+
+### CPU
+
+Linux kernel CPU Load guide: https://www.kernel.org/doc/html/latest/admin-guide/cpu-load.html
+
+loadvg.c source: https://github.com/torvalds/linux/blob/master/kernel/sched/loadavg.c
+
+http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
+
+```bash
+uptime # check load avg
+vmstat 1 # system-wide utilization. Swapping?
+mpstat -P ALL 1 # CPU balance
+pidstat 1 # per-process CPU
+```
+
+### Memory
 
 ```bash
 free -m # memory usage
 ```
 
-CPU:
-
-```bash
-uptime # check load avg
-vmstat 1 # system-wide utilization. is this swapping?
-mpstat -P ALL 1 # CPU balance
-pidstat 1 # per-process CPU
-```
-
-Disk:
+### Disk
 
 ```bash
 iostat -xnz 1 # any disk IO? no? good
 df -h # are file systems nearly full?
+du -hs /var/log/* | sort -rh | less # check log sizes
 ```
 
-Network:
+### Network
+
+Check connection statistics (source https://gist.github.com/mindfuckup/c82e4ddae16c8d68a67a9699ff7c4c20):
+
+```
+curl -w "DNS: %{time_namelookup}\nTCP: %{time_connect}\nTLS: %{time_appconnect}\nTotal: %{time_total}\n" -o /dev/null -s https://example.net/test
+```
+
+Verify hostname resolution:
+
+```
+host example.com 1.1.1.1
+dig example.com
+```
+
+Verify what TCP port are used and their accessibility:
+
+```
+telnet localhost 5672
+```
+
+Inspect open ports, TCP and UDP connections:
+
+```bash
+sudo netstat --all --numeric --tcp --programs
+sudo lsof -n -i4TCP:5672 | grep LISTEN # display OS processes that listen on port 5672 and use IPv4
+sudo ss --tcp -f inet --listening --numeric --processes # display listening TCP sockets that use IPv4 and their OS processes
+lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
+# 3306 - default MYSQL port
+# 5432 - default PSQL port
+# 6432 - default pgBouncer port
+```
+
+Inspect network IO and TCP stats:
 
 ```bash
 sar -n DEV 1 # network IO
 sar -n TCP,ETCP 1 # TCP stats
 ```
 
-Check DB connections:
-
-```bash
-lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
-# 3306 - default MYSQL port
-# 5432 - default PSQL port
-# 6432 - default pgBouncer port
-```
 
 ## Storage
 
@@ -48,7 +84,7 @@ Database actual isolation levels: https://github.com/ept/hermitage
 
 ### Postgres
 
-#### Postgres Guides
+Postgres docs: https://www.postgresql.org/docs/current/index.html
 
 Postgres Guide : http://postgresguide.com/
 
@@ -62,7 +98,7 @@ Postgres Explain Visualizer: https://tatiyants.com/pev/#/plans/new
 
 #### Disk usage
 
-Detailted PostGres Disk Usage: https://wiki.postgresql.org/wiki/Disk_Usage
+Detailed PostGres Disk Usage: https://wiki.postgresql.org/wiki/Disk_Usage
 
 Check DB sizes:
 
@@ -74,7 +110,11 @@ Check DB sizes:
 SELECT pg_size_pretty( pg_total_relation_size('tablename'));
 ```
 
-#### Running queries
+Check the number of connections:
+
+```
+SELECT * FROM pg_stat_activity;
+```
 
 ```sql
 -- show queries that runs more than 2 minutes
@@ -88,12 +128,6 @@ SELECT pid, age(clock_timestamp(), query_start), usename, query
 FROM pg_stat_activity 
 WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' 
 ORDER BY query_start desc;
-```
-
-Check the number of connections:
-
-```
-SELECT * FROM pg_stat_activity;
 ```
 
 Check pgBouncer state:
@@ -125,7 +159,9 @@ pg_restore -d newdb db.dump # reload an archive file into a (freshly created) da
 
 ### MySQL
 
-#### Check MySQL state in 60s
+MySQL reference: https://dev.mysql.com/doc/refman/8.0/en/
+
+#### Server status
 
 This query will list the size of every table in every database, largest first:
 
@@ -172,6 +208,10 @@ redis-cli client list # returns information and statistics about the client conn
 redis-cli dbsize # the number of keys in the currently-selected database. New connections always use the database 0.
 ```
 
+## JVM
+
+How different Java versions behave in a container: https://merikan.com/2019/04/jvm-in-a-container/
+
 ## Development
 
 ### Helpers
@@ -203,6 +243,12 @@ Simple example with [wrk](https://github.com/wg/wrk):
 wrk -t12 -c400 -d30s http://127.0.0.1:8080/index.html
 ```
 
+Apache Bench:
+
+```bash
+ab -r -k -n 100000 -c 100 [http://localhost:9000/](http://localhost:9000/)
+```
+
 More advanced example with [hey](https://github.com/rakyll/hey) (written in Go). POST Query with cookies:
 
 ```bash
@@ -213,4 +259,10 @@ Redis benchmark (https://redis.io/topics/benchmarks):
 
 ```
 redis-benchmark -c 10 -n 100000 -q
+```
+
+Postgres benchmark (https://www.postgresql.org/docs/current/pgbench.html)
+
+```
+pgbench -i -c 10 -j 10 -t 10000 -h host -p port -U user dbname
 ```
