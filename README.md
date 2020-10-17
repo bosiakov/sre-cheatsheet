@@ -12,9 +12,7 @@ USE Method: http://www.brendangregg.com/USEmethod/use-linux.html
 
 Linux kernel CPU Load guide: https://www.kernel.org/doc/html/latest/admin-guide/cpu-load.html
 
-loadvg.c source: https://github.com/torvalds/linux/blob/master/kernel/sched/loadavg.c
-
-http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
+Linux Load Averages: http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
 
 ```bash
 uptime # check load avg
@@ -39,6 +37,8 @@ du -hs /var/log/* | sort -rh | less # check log sizes
 
 ### Network
 
+[List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers)
+
 Check connection statistics (source https://gist.github.com/mindfuckup/c82e4ddae16c8d68a67a9699ff7c4c20):
 
 ```
@@ -49,7 +49,8 @@ Verify hostname resolution:
 
 ```
 host example.com 1.1.1.1
-dig example.com
+nslookup example.com 1.1.1.1
+dig @1.1.1.1 +short example.com
 ```
 
 Verify what TCP port are used and their accessibility:
@@ -88,9 +89,30 @@ Postgres docs: https://www.postgresql.org/docs/current/index.html
 
 Postgres Guide : http://postgresguide.com/
 
+
+#### Configuration
+
+Server Configuration: https://www.postgresql.org/docs/current/runtime-config.html
+
 Postgres Config generator: https://pgtune.leopard.in.ua/#/
 
-#### Explain visialize
+```
+pg_lsclusters # show information about all PostgreSQL clusters
+```
+
+In PSQL shell:
+
+```
+SHOW hba_file; -- Host Based Authentication Configuration
+-- usually located in /etc/postgresql/xx/main/pg_hba.conf
+
+SHOW config_file; -- PostgreSQL Server Configuration
+-- usually located in /etc/postgresql/xx/main/postgresql.conf
+```
+
+Authentication Methods: https://www.postgresql.org/docs/current/auth-methods.html
+
+#### Explain
 
 Postgres Explain Beatify: https://explain.depesz.com/
 
@@ -161,6 +183,29 @@ pg_restore -d newdb db.dump # reload an archive file into a (freshly created) da
 
 MySQL reference: https://dev.mysql.com/doc/refman/8.0/en/
 
+#### Configuration
+
+MySQL Server Options: https://dev.mysql.com/doc/refman/8.0/en/server-options.html
+
+Default options are read from the following files in the given order:
+
+```
+/etc/mysql/my.cnf ~/.my.cnf /usr/etc/my.cnf
+```
+
+```
+# check system process list using 
+ps ax | grep '[m]ysqld'
+
+# Warning, you can easily overwrite pidfile for running instance 
+# use --pid-file
+mysqld --help --verbose --pid-file=XYZ | grep -A 1 "Default options"
+```
+
+```
+mysql> SHOW VARIABLES;
+```
+
 #### Server status
 
 This query will list the size of every table in every database, largest first:
@@ -198,7 +243,7 @@ mysql db1 < dump.sql
 
 CLI handbook: https://redis.io/commands
 
-### Check Redis state
+Check Redis state:
 
 ```bash
 redis-cli info # Complete info including network, CPU, memory, persistence and cluster settings
@@ -235,6 +280,12 @@ How to write good bash: https://blog.yossarian.net/2020/01/23/Anybody-can-write-
 Unofficial bash strict mode: http://redsymbol.net/articles/unofficial-bash-strict-mode/
 
 
+## Post Mortem
+
+Reading postmortems: http://danluu.com/postmortem-lessons/
+
+A List of Post-mortems: https://github.com/danluu/post-mortems
+
 ## Simple perfomance test
 
 Simple example with [wrk](https://github.com/wg/wrk):
@@ -243,10 +294,10 @@ Simple example with [wrk](https://github.com/wg/wrk):
 wrk -t12 -c400 -d30s http://127.0.0.1:8080/index.html
 ```
 
-Apache Bench:
+Apache Bench [ab](https://httpd.apache.org/docs/2.4/programs/ab.html):
 
 ```bash
-ab -r -k -n 100000 -c 100 [http://localhost:9000/](http://localhost:9000/)
+ab -r -k -n 100000 -c 100 http://localhost:9000/
 ```
 
 More advanced example with [hey](https://github.com/rakyll/hey) (written in Go). POST Query with cookies:
