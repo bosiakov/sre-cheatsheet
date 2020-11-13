@@ -89,6 +89,7 @@ Postgres docs: https://www.postgresql.org/docs/current/index.html
 
 Postgres Guide : http://postgresguide.com/
 
+Postgres Observability: https://pgstats.dev/
 
 #### Configuration
 
