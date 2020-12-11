@@ -39,7 +39,7 @@ du -hs /var/log/* | sort -rh | less # check log sizes
 
 [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers)
 
-Check connection statistics (source https://gist.github.com/mindfuckup/c82e4ddae16c8d68a67a9699ff7c4c20):
+Check connection statistics ([source](https://gist.github.com/mindfuckup/c82e4ddae16c8d68a67a9699ff7c4c20)):
 
 ```
 curl -w "DNS: %{time_namelookup}\nTCP: %{time_connect}\nTLS: %{time_appconnect}\nTotal: %{time_total}\n" -o /dev/null -s https://example.net/test
@@ -53,7 +53,7 @@ nslookup example.com 1.1.1.1
 dig @1.1.1.1 +short example.com
 ```
 
-Verify what TCP port are used and their accessibility:
+Verify TCP port accessibility:
 
 ```
 telnet localhost 5672
@@ -77,7 +77,6 @@ Inspect network IO and TCP stats:
 sar -n DEV 1 # network IO
 sar -n TCP,ETCP 1 # TCP stats
 ```
-
 
 ## Storage
 
@@ -179,7 +178,6 @@ pg_dump --host <host> --port 5432 --username <user> --format plain --verbose --f
 pg_restore -d newdb db.dump # reload an archive file into a (freshly created) database named newdb
 ```
 
-
 ### MySQL
 
 MySQL reference: https://dev.mysql.com/doc/refman/8.0/en/
@@ -253,6 +251,37 @@ redis-cli monitor # Warning: Because MONITOR streams back all commands, its use 
 redis-cli client list # returns information and statistics about the client connections
 redis-cli dbsize # the number of keys in the currently-selected database. New connections always use the database 0.
 ```
+
+Redis latency problems checklist: https://redis.io/topics/latency
+
+```bash
+# latency is a measure of how long does a ping command take to receive a response from the server
+redis-cli --latency -h `host` -p `port`
+redis-cli --intrinsic-latency 100 # we can't ask better than intrinsic latency value 
+```
+Latency monitoring framework: https://redis.io/topics/latency-monitor
+
+```bash
+CONFIG SET latency-monitor-threshold 100 # latency threshold in milliseconds
+LATENCY LATEST # the latest latency samples for all events
+LATENCY DOCTOR # a human-readable latency analysis report
+```
+
+Redis slow queries log: https://redis.io/commands/slowlog
+
+```bash
+SLOWLOG GET 10
+# Result:
+# An identifier
+# The unix timestamp
+# execution time in microseconds
+# arguments of the command
+
+SLOWLOG LEN # the length of the slow log
+SLOWLOG RESET # reset the slow log
+```
+
+Warning: Do not use **KEYS** in Production. It may ruin performance when it is executed against large databases. This command is intended for debugging. Read more: https://redis.io/commands/keys
 
 ## JVM
 
