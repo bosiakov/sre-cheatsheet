@@ -53,10 +53,12 @@ nslookup example.com 1.1.1.1
 dig @1.1.1.1 +short example.com
 ```
 
-Verify TCP port accessibility:
+Verify TCP/UDP port accessibility:
 
 ```
-telnet localhost 5672
+telnet localhost 5672 # TCP
+nc -v localhost 25 # TCP
+nc -uv localhost 53 # UDP
 ```
 
 Inspect open ports, TCP and UDP connections:
