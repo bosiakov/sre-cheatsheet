@@ -48,9 +48,9 @@ curl -w "DNS: %{time_namelookup}\nTCP: %{time_connect}\nTLS: %{time_appconnect}\
 Verify hostname resolution:
 
 ```
-host example.com 1.1.1.1
-nslookup example.com 1.1.1.1
-dig @1.1.1.1 +short example.com
+host myhost.com 1.1.1.1
+nslookup myhost.com 1.1.1.1
+dig @1.1.1.1 +short myhost.com
 ```
 
 Verify TCP/UDP port accessibility:
@@ -65,6 +65,9 @@ Inspect open ports, TCP and UDP connections:
 
 ```bash
 sudo netstat --all --numeric --tcp --programs
+
+sudo netstat -pan | grep TIME_WAIT | wc -l # how many TIME_WAIT ?
+
 sudo lsof -n -i4TCP:5672 | grep LISTEN # display OS processes that listen on port 5672 and use IPv4
 sudo ss --tcp -f inet --listening --numeric --processes # display listening TCP sockets that use IPv4 and their OS processes
 lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
@@ -114,45 +117,51 @@ SHOW config_file; -- PostgreSQL Server Configuration
 
 Authentication Methods: https://www.postgresql.org/docs/current/auth-methods.html
 
-#### Explain
+#### Postgres perfomance checklist
 
 Postgres Explain Beatify: https://explain.depesz.com/
 
 Postgres Explain Visualizer: https://tatiyants.com/pev/#/plans/new
 
-#### Disk usage
-
 Detailed PostGres Disk Usage: https://wiki.postgresql.org/wiki/Disk_Usage
 
-Check DB sizes:
+Check DB size:
 
 ```sql
 \l+
+\dt+
+\di+
 
 -- size of one table 
 \c dbname
-SELECT pg_size_pretty( pg_total_relation_size('tablename'));
+SELECT pg_size_pretty(pg_total_relation_size('tablename'));
 ```
 
 Check the number of connections:
 
 ```
-SELECT * FROM pg_stat_activity;
+SELECT count(pid) FROM pg_stat_activity;
 ```
 
-```sql
--- show queries that runs more than 2 minutes
-SELECT now() - query_start as "runtime", usename, datname, state, query
-  FROM  pg_stat_activity
-  WHERE now() - query_start > '2 minutes'::interval
- ORDER BY runtime DESC;
+Show all running queries:
 
--- show all running queries
+```sql
 SELECT pid, age(clock_timestamp(), query_start), usename, query 
 FROM pg_stat_activity 
 WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' 
 ORDER BY query_start desc;
 ```
+
+Show queries that runs more than 2 minutes:
+
+```sql
+SELECT now() - query_start as "runtime", usename, datname, state, query
+FROM  pg_stat_activity
+WHERE now() - query_start > '2 minutes'::interval
+ORDER BY runtime DESC;
+```
+
+Locks Monitoring: https://wiki.postgresql.org/wiki/Lock_Monitoring
 
 Check pgBouncer state:
 
@@ -207,7 +216,7 @@ mysqld --help --verbose --pid-file=XYZ | grep -A 1 "Default options"
 mysql> SHOW VARIABLES;
 ```
 
-#### Server status
+#### MySQL perfomance checklist
 
 This query will list the size of every table in every database, largest first:
 
@@ -285,9 +294,29 @@ SLOWLOG RESET # reset the slow log
 
 Warning: Do not use **KEYS** in Production. It may ruin performance when it is executed against large databases. This command is intended for debugging. Read more: https://redis.io/commands/keys
 
+Mass data insertion: https://redis.io/topics/mass-insert
+
+Generate a file containing commands in the Redis protocol format.  For example, see https://redis.io/topics/mass-insert#generating-redis-protocol
+
+```
+# in case you don't have redis-cli you can use nc
+# netcat does not really know when all the data was transferred and can't check for errors
+# prefer redis-cli when possible
+(cat data.txt; sleep 10) | nc localhost 6379 > /dev/null
+
+# redis-cli utility supports a new mode called pipe mode that was designed in order to perform mass insertion.
+cat data.txt | redis-cli --pipe
+```
+
 ## JVM
 
 How different Java versions behave in a container: https://merikan.com/2019/04/jvm-in-a-container/
+
+### Kafka
+
+Configuration: https://kafka.apache.org/documentation/#configuration
+
+Apache Kafka Supports 200K Partitions: https://www.confluent.io/blog/apache-kafka-supports-200k-partitions-per-cluster/
 
 ## Development
 
@@ -342,6 +371,19 @@ Redis benchmark (https://redis.io/topics/benchmarks):
 
 ```
 redis-benchmark -c 10 -n 100000 -q
+```
+
+Disk device performance:
+
+```
+# simple sequential I/O performance
+
+# server throughput (write speed)
+# oflag=dsync -> synchronized I/O for data (get rid of caching)
+dd if=/dev/zero of=/tmp/test1.img bs=1G count=1 oflag=dsync
+
+# 512 bytes will be written one thousand times
+dd if=/dev/zero of=/tmp/test2.img bs=512 count=1000 oflag=dsync
 ```
 
 Postgres benchmark (https://www.postgresql.org/docs/current/pgbench.html)
