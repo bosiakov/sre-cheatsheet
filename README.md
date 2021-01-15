@@ -125,6 +125,8 @@ Postgres Explain Visualizer: https://tatiyants.com/pev/#/plans/new
 
 Detailed PostGres Disk Usage: https://wiki.postgresql.org/wiki/Disk_Usage
 
+How to read Explain: https://www.depesz.com/tag/unexplainable/
+
 Check DB size:
 
 ```sql
@@ -308,6 +310,12 @@ Generate a file containing commands in the Redis protocol format.  For example, 
 cat data.txt | redis-cli --pipe
 ```
 
+## Docker
+
+Dockerfile linter: https://hadolint.github.io/hadolint/
+
+Official Best practices for writing Dockerfiles: https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
 ## JVM
 
 How different Java versions behave in a container: https://merikan.com/2019/04/jvm-in-a-container/
@@ -317,6 +325,14 @@ How different Java versions behave in a container: https://merikan.com/2019/04/j
 Configuration: https://kafka.apache.org/documentation/#configuration
 
 Apache Kafka Supports 200K Partitions: https://www.confluent.io/blog/apache-kafka-supports-200k-partitions-per-cluster/
+
+## Nginx
+
+Index of variables: https://nginx.org/en/docs/varindex.html
+
+How to prevent processing requests with undefined server names: https://nginx.org/en/docs/http/request_processing.html#how_to_prevent_undefined_server_names
+
+Nginx handbook: https://github.com/trimstray/nginx-admins-handbook/blob/master/doc/RULES.md
 
 ## Development
 
