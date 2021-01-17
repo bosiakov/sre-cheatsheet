@@ -27,6 +27,18 @@ Check current system limits:
 ulimit -a
 ```
 
+```
+sudo strings /proc/30580/environ
+sudo ls -l /proc/30580/fd/
+sudo cat /proc/30580/io #  I/O statistics for the process
+cat /proc/30580/limits # the details about the actual resource limits for the process
+
+# current score that the kernel gives to this process for the purpose of selecting a process for the OOM-killer
+# 1000  - the process uses all the memory.
+# 0 - in this file will never be killed
+sudo cat /proc/30580/oom_score
+```
+
 ### Memory
 
 ```bash
