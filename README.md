@@ -21,6 +21,12 @@ mpstat -P ALL 1 # CPU balance
 pidstat 1 # per-process CPU
 ```
 
+Check current system limits:
+
+```
+ulimit -a
+```
+
 ### Memory
 
 ```bash
@@ -363,7 +369,7 @@ Reading postmortems: http://danluu.com/postmortem-lessons/
 
 A List of Post-mortems: https://github.com/danluu/post-mortems
 
-## Simple perfomance test
+## Perfomance benching
 
 Simple example with [wrk](https://github.com/wg/wrk):
 
@@ -407,3 +413,7 @@ Postgres benchmark (https://www.postgresql.org/docs/current/pgbench.html)
 ```
 pgbench -i -c 10 -j 10 -t 10000 -h host -p port -U user dbname
 ```
+
+## Security
+
+https://madaidans-insecurities.github.io/guides/linux-hardening.html
