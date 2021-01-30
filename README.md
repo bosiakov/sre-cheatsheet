@@ -273,6 +273,22 @@ mysql db1 < dump.sql
 
 CLI handbook: https://redis.io/commands
 
+Configuration handbook: https://redis.io/topics/config
+
+Usually configuration file is called [redis.conf](https://raw.githubusercontent.com/redis/redis/6.0/redis.conf).
+
+Config file location:
+
+```bash
+redis-cli info server | grep config_file # usually /etc/redis.conf
+```
+
+Log file location:
+
+```bash
+cat /etc/redis/redis.conf | grep logfile # usually /var/log/redis-server.log or /var/log/redis_6379.log
+```
+
 Check Redis state:
 
 ```bash
