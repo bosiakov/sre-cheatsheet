@@ -368,6 +368,12 @@ How to prevent processing requests with undefined server names: https://nginx.or
 
 Nginx handbook: https://github.com/trimstray/nginx-admins-handbook/blob/master/doc/RULES.md
 
+## Monitoring and Alerting
+
+Prometheus Exporters and integrations: https://prometheus.io/docs/instrumenting/exporters/
+
+Awesome Prometheus Alerts: https://awesome-prometheus-alerts.grep.to/
+
 ## Development
 
 ### Helpers
