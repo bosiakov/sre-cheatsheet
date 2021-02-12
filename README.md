@@ -360,6 +360,12 @@ Configuration: https://kafka.apache.org/documentation/#configuration
 
 Apache Kafka Supports 200K Partitions: https://www.confluent.io/blog/apache-kafka-supports-200k-partitions-per-cluster/
 
+```
+# kafka application logs path locations
+$KAFKA_HOME/kafka/logs/
+/var/log/kafka
+```
+
 ## Nginx
 
 Index of variables: https://nginx.org/en/docs/varindex.html
@@ -402,6 +408,8 @@ Unofficial bash strict mode: http://redsymbol.net/articles/unofficial-bash-stric
 Reading postmortems: http://danluu.com/postmortem-lessons/
 
 A List of Post-mortems: https://github.com/danluu/post-mortems
+
+Kubernetes Failure Stories: https://k8s.af/
 
 ## Perfomance benching
 
