@@ -259,6 +259,16 @@ show status where `variable_name` = 'Threads_connected'; -- The number of curren
 show processlist; -- running queries
 ```
 
+The mysqlcheck client performs table maintenance: it checks, repairs, optimizes, or analyzes tables. 
+[Official Documentation](https://dev.mysql.com/doc/refman/8.0/en/mysqlcheck.html)
+
+```
+# Run mysqlcheck with the root user, prompt for a password check all databases
+mysqlcheck -u root -p --all-databases --auto-repair -a # analyze
+mysqlcheck -u root -p --all-databases --auto-repair -r # repair
+mysqlcheck -u root -p --all-databases --auto-repair -o # optimize
+```
+
 #### MySQL dump / backup
 
 Quick snippet for MySQL backup:
