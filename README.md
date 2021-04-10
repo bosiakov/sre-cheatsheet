@@ -4,6 +4,36 @@ Collection of cheatsheets for performing a complete check of system health, data
 
 Target audience: DevOps, SRE, System Administrators, and everyone who is on duty.
 
+[Operations Engineer Cheatsheet](#operations-engineer-cheatsheet)
+- [Linux Performance Checklist](#linux-performance-checklist)
+    - [CPU](#cpu)
+    - [Memory](#memory)
+    - [Disk](#disk)
+    - [Network](#network)
+- [Storage](#storage)
+    - [Postgres](#postgres)
+        - [Configuration](#configuration)
+        - [PSQL Tricks](#psql-tricks)
+        - [Postgres perfomance checklist](#postgres-perfomance-checklist)
+        - [Postgres Dump / Backup](#postgres-dump--backup)
+    - [MySQL](#mysql)
+        - [Configuration](#configuration-1)
+        - [MySQL perfomance checklist](#mysql-perfomance-checklist)
+        - [MySQL dump / backup](#mysql-dump--backup)
+    - [Redis](#redis)
+- [Docker](#docker)
+- [JVM](#jvm)
+    - [Kafka](#kafka)
+- [Nginx](#nginx)
+- [Kubernetes](#kubernetes)
+- [Monitoring and Alerting](#monitoring-and-alerting)
+- [Development](#development)
+    - [Helpers](#helpers)
+    - [Bash](#bash)
+- [Post Mortem](#post-mortem)
+- [Perfomance benching](#perfomance-benching)
+- [Security](#security)
+
 ## Linux Performance Checklist
 
 USE Method: http://www.brendangregg.com/USEmethod/use-linux.html
@@ -28,15 +58,10 @@ ulimit -a
 ```
 
 ```
-sudo strings /proc/30580/environ
-sudo ls -l /proc/30580/fd/
-sudo cat /proc/30580/io #  I/O statistics for the process
-cat /proc/30580/limits # the details about the actual resource limits for the process
-
-# current score that the kernel gives to this process for the purpose of selecting a process for the OOM-killer
-# 1000  - the process uses all the memory.
-# 0 - in this file will never be killed
-sudo cat /proc/30580/oom_score
+sudo strings /proc/pid/environ
+sudo ls -l /proc/pid/fd/
+sudo cat /proc/pid/io #  I/O statistics for the process
+cat /proc/pid/limits # the details about the actual resource limits for the process
 ```
 
 ### Memory
@@ -66,8 +91,6 @@ curl -w "DNS: %{time_namelookup}\nTCP: %{time_connect}\nTLS: %{time_appconnect}\
 Verify hostname resolution:
 
 ```
-host myhost.com 1.1.1.1
-nslookup myhost.com 1.1.1.1
 dig @1.1.1.1 +short myhost.com
 ```
 
@@ -134,6 +157,72 @@ SHOW config_file; -- PostgreSQL Server Configuration
 ```
 
 Authentication Methods: https://www.postgresql.org/docs/current/auth-methods.html
+
+#### PSQL Tricks
+
+PSQL documentation: https://www.postgresql.org/docs/current/app-psql.html
+
+Metacommands:
+
+```
+-- all visible tables, views, materialized views, sequences and foreign tables
+\d
+
+-- + modifier will display also size, access priviledges and description
+-- S modifier will display system objects
+\d+
+\dS
+
+\dl -- large objects in the database
+\dn -- schemas (S modifier will allow to list system schemas)
+\db -- tablespaces (+ modifier will display size and other meta-info)
+\dt -- tables
+\di -- indexes
+\dP -- partitioned tables and indexes
+
+\dE -- foreign tables
+\dm -- materialized views
+\ds -- sequences
+\dv -- views
+\df -- functions
+```
+
+Flags:
+
+```
+-- csv: result as a csv file
+psql --csv -c 'select 1;'
+
+-- E (echo-hidden): display the actual query
+psql -E -c '\l'
+
+-- L (log-file): in addition to the stdout write query output into file
+psql -c 'select * from test;' -L output.log
+
+-- o: write all output into file
+psql -c 'select 1;' -o output.log
+
+-- s (single-step): stop after each command
+psql -s -f query.sql
+
+-- t (tuples-only): turn off printing column names and result row count   
+psql -c 'select * from test;' -t
+
+-- x (expand): expand the output
+psql -x -c 'select 1;'
+
+-- single-transaction: encapsulate all commands 
+-- into a single transaction with begin and commit (or rollback)
+psql -1 -f query.sql -E
+```
+
+Load file into psql:
+
+```
+psql -f query.sql
+cat query.sql | psql
+psql < query.sql
+```
 
 #### Postgres perfomance checklist
 
@@ -368,10 +457,9 @@ How different Java versions behave in a container: https://merikan.com/2019/04/j
 
 Configuration: https://kafka.apache.org/documentation/#configuration
 
-Apache Kafka Supports 200K Partitions: https://www.confluent.io/blog/apache-kafka-supports-200k-partitions-per-cluster/
+Kafka application logs path:
 
 ```
-# kafka application logs path locations
 $KAFKA_HOME/kafka/logs/
 /var/log/kafka
 ```
@@ -384,11 +472,27 @@ How to prevent processing requests with undefined server names: https://nginx.or
 
 Nginx handbook: https://github.com/trimstray/nginx-admins-handbook/blob/master/doc/RULES.md
 
+## Kubernetes
+
+kubectl Cheat Sheet: https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+Master components and their log locations:
+
+* API server: /var/log/kube-apiserver.log
+* Scheduler: /var/log/kube-scheduler.log
+* Controller manager: /var/log/kube-controller-manager.log
+
+Worker node components and their log locations are:
+* Kubelet: /var/log/kubelet.log
+* Kube proxy: /var/log/kube-proxy.log
+
 ## Monitoring and Alerting
 
 Prometheus Exporters and integrations: https://prometheus.io/docs/instrumenting/exporters/
 
 Awesome Prometheus Alerts: https://awesome-prometheus-alerts.grep.to/
+
+PromLens: https://promlens.com
 
 ## Development
 
