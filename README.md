@@ -49,19 +49,7 @@ uptime # check load avg
 vmstat 1 # system-wide utilization. Swapping?
 mpstat -P ALL 1 # CPU balance
 pidstat 1 # per-process CPU
-```
 
-Check current system limits:
-
-```
-ulimit -a
-```
-
-```
-sudo strings /proc/pid/environ
-sudo ls -l /proc/pid/fd/
-sudo cat /proc/pid/io #  I/O statistics for the process
-cat /proc/pid/limits # the details about the actual resource limits for the process
 ```
 
 ### Memory
@@ -75,6 +63,7 @@ free -m # memory usage
 ```bash
 iostat -xnz 1 # any disk IO? no? good
 df -h # are file systems nearly full?
+cat /proc/sys/fs/file-nr # current number of open files from the Linux kernel's point of view
 du -hs /var/log/* | sort -rh | less # check log sizes
 ```
 
@@ -91,7 +80,8 @@ curl -w "DNS: %{time_namelookup}\nTCP: %{time_connect}\nTLS: %{time_appconnect}\
 Verify hostname resolution:
 
 ```
-dig @1.1.1.1 +short myhost.com
+dig +trace myhost.com
+dig myhost.com any
 ```
 
 Verify TCP/UDP port accessibility:
@@ -310,15 +300,6 @@ Default options are read from the following files in the given order:
 
 ```
 /etc/mysql/my.cnf ~/.my.cnf /usr/etc/my.cnf
-```
-
-```
-# check system process list using 
-ps ax | grep '[m]ysqld'
-
-# Warning, you can easily overwrite pidfile for running instance 
-# use --pid-file
-mysqld --help --verbose --pid-file=XYZ | grep -A 1 "Default options"
 ```
 
 ```
