@@ -1,38 +1,39 @@
-# Operations Engineer Cheatsheet
+# Reliability Engineer Cheatsheet
 
 Collection of cheatsheets for performing a complete check of system health, database administration, performance benchmarks, and documentation links.
 
 Target audience: DevOps, SRE, System Administrators, and everyone who is on duty.
 
-[Operations Engineer Cheatsheet](#operations-engineer-cheatsheet)
-- [Linux Performance Checklist](#linux-performance-checklist)
+- [Reliability Engineer Cheatsheet](#reliability-engineer-cheatsheet)
+  - [Linux Performance Checklist](#linux-performance-checklist)
     - [CPU](#cpu)
     - [Memory](#memory)
     - [Disk](#disk)
     - [Network](#network)
-- [Storage](#storage)
+  - [Storage](#storage)
     - [Postgres](#postgres)
-        - [Configuration](#configuration)
-        - [PSQL Tricks](#psql-tricks)
-        - [Postgres perfomance checklist](#postgres-perfomance-checklist)
-        - [Postgres Dump / Backup](#postgres-dump--backup)
+      - [Configuration](#configuration)
+      - [PSQL Tricks](#psql-tricks)
+      - [Postgres perfomance checklist](#postgres-perfomance-checklist)
+      - [Postgres Dump / Backup](#postgres-dump--backup)
     - [MySQL](#mysql)
-        - [Configuration](#configuration-1)
-        - [MySQL perfomance checklist](#mysql-perfomance-checklist)
-        - [MySQL dump / backup](#mysql-dump--backup)
+      - [Configuration](#configuration-1)
+      - [MySQL perfomance checklist](#mysql-perfomance-checklist)
+      - [MySQL dump / backup](#mysql-dump--backup)
     - [Redis](#redis)
-- [Docker](#docker)
-- [JVM](#jvm)
-    - [Kafka](#kafka)
-- [Nginx](#nginx)
-- [Kubernetes](#kubernetes)
-- [Monitoring and Alerting](#monitoring-and-alerting)
-- [Development](#development)
+    - [Apache Kafka](#apache-kafka)
+      - [Consumers Troubleshooting](#consumers-troubleshooting)
+  - [Docker](#docker)
+  - [JVM](#jvm)
+  - [Nginx](#nginx)
+  - [Kubernetes](#kubernetes)
+  - [Monitoring and Alerting](#monitoring-and-alerting)
+  - [Development](#development)
     - [Helpers](#helpers)
     - [Bash](#bash)
-- [Post Mortem](#post-mortem)
-- [Perfomance benching](#perfomance-benching)
-- [Security](#security)
+  - [Post Mortem](#post-mortem)
+  - [Perfomance benching](#perfomance-benching)
+  - [Security](#security)
 
 ## Linux Performance Checklist
 
@@ -424,6 +425,52 @@ Generate a file containing commands in the Redis protocol format.  For example, 
 cat data.txt | redis-cli --pipe
 ```
 
+### Apache Kafka
+
+Configuration: https://kafka.apache.org/documentation/#configuration
+
+Setting up new cluster? Sizing Calculator for Apache Kafka: https://eventsizer.io/
+
+#### Consumers Troubleshooting
+
+Clone kafka tools from Kafka Source Code ([kafka/bin](https://github.com/apache/kafka/tree/trunk/bin) dir).
+
+Check Kafka Cluster availability. Maybe cluster is down or unreachable within a network?
+
+```
+curl -skv telnet://<broker address>:<broker port>
+```
+
+Check how many consumers are in a group. Maybe Kafka kicked them by a time-out, or they are stuck.
+
+```
+# Make sure the number of consumers is greater than zero 
+
+kafka-consumer-groups.sh --describe --group mygroup --bootstrap-server mycluster:9092
+```
+
+Describe the topic and check the number of partitions. Maybe the number of consumers is higher than the number of partitions?   
+
+```
+# Make sure the number of partitions in topic < the number of consumers
+
+kafka-topics.sh --describe --zookeeper myzk:2181 --topic mytopic
+```
+
+Check the lag on a consumer group. Maybe consumers are stuck on some message?
+
+```
+# Make sure the lag on topic for consumer group tends to zero 
+kafka-consumer-groups.sh --bootstrap-server mycluster:9092 --describe --group mygroup 
+```
+
+Is cluster down? Check Kafka's logs at:
+
+```
+$KAFKA_HOME/kafka/logs/
+/var/log/kafka
+```
+
 ## Docker
 
 Dockerfile linter: https://hadolint.github.io/hadolint/
@@ -433,17 +480,6 @@ Official Best practices for writing Dockerfiles: https://docs.docker.com/develop
 ## JVM
 
 How different Java versions behave in a container: https://merikan.com/2019/04/jvm-in-a-container/
-
-### Kafka
-
-Configuration: https://kafka.apache.org/documentation/#configuration
-
-Kafka application logs path:
-
-```
-$KAFKA_HOME/kafka/logs/
-/var/log/kafka
-```
 
 ## Nginx
 
@@ -456,6 +492,8 @@ Nginx handbook: https://github.com/trimstray/nginx-admins-handbook/blob/master/d
 ## Kubernetes
 
 kubectl Cheat Sheet: https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+Production best practices: https://learnk8s.io/production-best-practices
 
 Master components and their log locations:
 
@@ -554,3 +592,5 @@ pgbench -i -c 10 -j 10 -t 10000 -h host -p port -U user dbname
 ## Security
 
 https://madaidans-insecurities.github.io/guides/linux-hardening.html
+
+https://goteleport.com/blog/securing-postgres-postgresql/
