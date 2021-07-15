@@ -1,43 +1,54 @@
-# Reliability Engineer Cheatsheet
+<h1 align="center"> Reliability Engineer Cheatsheet </h1>
 
-Collection of cheatsheets for performing a complete check of system health, database administration, performance benchmarks, and documentation links.
+<h4 align="center">Hope is not a strategy.</h4>
+
+## Introduction
+
+Framework for performing a complete check of system health, database administration, performance benchmarks, and documentation links.
 
 Target audience: DevOps, SRE, System Administrators, and everyone who is on duty.
 
-- [Reliability Engineer Cheatsheet](#reliability-engineer-cheatsheet)
-  - [Linux Performance Checklist](#linux-performance-checklist)
-    - [CPU](#cpu)
-    - [Memory](#memory)
-    - [Disk](#disk)
-    - [Network](#network)
-  - [Storage](#storage)
-    - [Postgres](#postgres)
-      - [Configuration](#configuration)
-      - [PSQL Tricks](#psql-tricks)
-      - [Postgres perfomance checklist](#postgres-perfomance-checklist)
-      - [Postgres Dump / Backup](#postgres-dump--backup)
-    - [MySQL](#mysql)
-      - [Configuration](#configuration-1)
-      - [MySQL perfomance checklist](#mysql-perfomance-checklist)
-      - [MySQL dump / backup](#mysql-dump--backup)
-    - [Redis](#redis)
-    - [Apache Kafka](#apache-kafka)
-      - [Consumers Troubleshooting](#consumers-troubleshooting)
-  - [Docker](#docker)
-  - [JVM](#jvm)
-  - [Nginx](#nginx)
-  - [Kubernetes](#kubernetes)
-  - [Monitoring and Alerting](#monitoring-and-alerting)
-  - [Development](#development)
-    - [Helpers](#helpers)
-    - [Bash](#bash)
-  - [Post Mortem](#post-mortem)
-  - [Perfomance benching](#perfomance-benching)
-  - [Security](#security)
+- [Introduction](#introduction)
+- [Linux Performance Analysis](#linux-performance-analysis)
+  - [System](#system)
+  - [CPU](#cpu)
+  - [Memory](#memory)
+  - [Disk](#disk)
+  - [Network](#network)
+- [Storage](#storage)
+  - [Postgres](#postgres)
+    - [Configuration](#configuration)
+    - [PSQL Tricks](#psql-tricks)
+    - [Postgres perfomance checklist](#postgres-perfomance-checklist)
+    - [Postgres Dump / Backup](#postgres-dump--backup)
+  - [MySQL](#mysql)
+    - [Configuration](#configuration-1)
+    - [MySQL perfomance checklist](#mysql-perfomance-checklist)
+    - [MySQL dump / backup](#mysql-dump--backup)
+  - [Redis](#redis)
+  - [Apache Kafka](#apache-kafka)
+    - [Consumers Troubleshooting](#consumers-troubleshooting)
+- [Docker](#docker)
+- [JVM](#jvm)
+- [Nginx](#nginx)
+- [Kubernetes](#kubernetes)
+- [Monitoring and Alerting](#monitoring-and-alerting)
+- [Development](#development)
+  - [Helpers](#helpers)
+  - [Bash](#bash)
+- [Post Mortem](#post-mortem)
+- [Perfomance benching](#perfomance-benching)
+- [Security](#security)
 
-## Linux Performance Checklist
+## Linux Performance Analysis
 
 USE Method: http://www.brendangregg.com/USEmethod/use-linux.html
+
+### System
+
+```
+dmesg | tail # OOM killer?
+```
 
 ### CPU
 
@@ -46,11 +57,16 @@ Linux kernel CPU Load guide: https://www.kernel.org/doc/html/latest/admin-guide/
 Linux Load Averages: http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
 
 ```bash
-uptime # check load avg
-vmstat 1 # system-wide utilization. Swapping?
-mpstat -P ALL 1 # CPU balance
-pidstat 1 # per-process CPU
+uptime # check resource demand and move on
 
+# a summary of system-wide utilization
+vmstat 1 # Swapping?
+
+# CPU time breakdowns per CPU
+mpstat -P ALL 1 # A single hot CPU can be evidence of a single-threaded application
+
+# top’s per-process summary
+pidstat 1 # check the patterns over time
 ```
 
 ### Memory
@@ -62,10 +78,16 @@ free -m # memory usage
 ### Disk
 
 ```bash
-iostat -xnz 1 # any disk IO? no? good
 df -h # are file systems nearly full?
-cat /proc/sys/fs/file-nr # current number of open files from the Linux kernel's point of view
-du -hs /var/log/* | sort -rh | less # check log sizes
+
+# disks performance
+iostat -xnz 1 # any disk IO? no? good
+
+# current number of open files from the Linux kernel's point of view
+cat /proc/sys/fs/file-nr
+
+# check log sizes
+du -hs /var/log/* | sort -rh | less
 ```
 
 ### Network
@@ -82,7 +104,6 @@ Verify hostname resolution:
 
 ```
 dig +trace myhost.com
-dig myhost.com any
 ```
 
 Verify TCP/UDP port accessibility:
@@ -100,19 +121,24 @@ sudo netstat --all --numeric --tcp --programs
 
 sudo netstat -pan | grep TIME_WAIT | wc -l # how many TIME_WAIT ?
 
-sudo lsof -n -i4TCP:5672 | grep LISTEN # display OS processes that listen on port 5672 and use IPv4
-sudo ss --tcp -f inet --listening --numeric --processes # display listening TCP sockets that use IPv4 and their OS processes
+# display OS processes that listen on port 5672 and use IPv4
+sudo lsof -n -i4TCP:5672 | grep LISTEN
+
+# display listening TCP sockets that use IPv4 and their OS processes
+sudo ss --tcp -f inet --listening --numeric --processes 
+
 lsof -ni TCP:3306 | awk '{print $2}' | uniq -c
-# 3306 - default MYSQL port
-# 5432 - default PSQL port
-# 6432 - default pgBouncer port
 ```
 
 Inspect network IO and TCP stats:
 
 ```bash
-sar -n DEV 1 # network IO
-sar -n TCP,ETCP 1 # TCP stats
+# network interface throughput
+sar -n DEV 1 # check if any limit has been reached
+
+# key TCP metrics
+# Retransmits are a sign of a network or server issue. Unreliable network or a server being overloaded?
+sar -n TCP,ETCP 1
 ```
 
 ## Storage
