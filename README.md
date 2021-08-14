@@ -15,6 +15,7 @@ Target audience: DevOps, SRE, System Administrators, and everyone who is on duty
   - [Memory](#memory)
   - [Disk](#disk)
   - [Network](#network)
+  - [Getting System Information](#getting-system-information)
 - [Storage](#storage)
   - [Postgres](#postgres)
     - [Configuration](#configuration)
@@ -52,12 +53,16 @@ dmesg | tail # OOM killer?
 
 ### CPU
 
-Linux kernel CPU Load guide: https://www.kernel.org/doc/html/latest/admin-guide/cpu-load.html
+List processes sorted by % cpu usage:
 
-Linux Load Averages: http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
+```
+ps -e -o pcpu,cpu,nice,state,cputime,args --sort pcpu | tail
+```
+
+System utilization:
 
 ```bash
-uptime # check resource demand and move on
+uptime # check resource demand
 
 # a summary of system-wide utilization
 vmstat 1 # Swapping?
@@ -71,11 +76,21 @@ pidstat 1 # check the patterns over time
 
 ### Memory
 
-```bash
-free -m # memory usage
+List processes sorted by mem (KB) usage:
+
+```
+ps -e -orss=,args= | sort -b -k1,1n | tail
+```
+
+Memory usage:
+
+```
+free -m
 ```
 
 ### Disk
+
+System utilization:
 
 ```bash
 df -h # are file systems nearly full?
@@ -85,9 +100,13 @@ iostat -xnz 1 # any disk IO? no? good
 
 # current number of open files from the Linux kernel's point of view
 cat /proc/sys/fs/file-nr
+```
 
-# check log sizes
-du -hs /var/log/* | sort -rh | less
+Investigate root directory for disk usage:
+
+```
+# This command will only show folders with more than 1GB in size
+sudo du --threshold=1G -ch /.[!.]* /*
 ```
 
 ### Network
@@ -140,6 +159,32 @@ sar -n DEV 1 # check if any limit has been reached
 # Retransmits are a sign of a network or server issue. Unreliable network or a server being overloaded?
 sar -n TCP,ETCP 1
 ```
+
+### Getting System Information
+
+```
+lsb_release -a
+
+# In case when you don't have lsb_release installed:
+cat /etc/issue
+# or look at
+cat /etc/*release
+
+# get information about your operating system using unix name:
+
+uname -a
+```
+
+CPU information:
+
+```
+lscpu
+# or
+cat /proc/cpuinfo
+# or just the number of cores
+grep -c processor /proc/cpuinfo
+```
+
 
 ## Storage
 
